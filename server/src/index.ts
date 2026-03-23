@@ -7,15 +7,25 @@ import userRouter from "./routes/userRoutes";
 import authRouter from "./routes/authRoutes";
 import cors from 'cors';
 import { verifyToken } from "./utils/auth";
+import { db } from "./utils/db";
+import { sql } from "drizzle-orm";
 
 const app = express();
-const port = 4000;
+const port = process.env.PORT || 7000;
 
 interface MyContext {
   user: { userId: number } | null;
 }
 
 async function startServer() {
+  // Database Health Check
+  try {
+    await db.execute(sql`SELECT 1`);
+    console.log("✅ Database: Connected and healthy");
+  } catch (error) {
+    console.error("❌ Database: Connection failed", error);
+  }
+
   const server = new ApolloServer<MyContext>({
     typeDefs,
     resolvers,

@@ -3,8 +3,9 @@
 This server provides both REST and GraphQL endpoints for user management and authentication.
 
 ## BASE URL
-- REST API: `http://localhost:4000/api`
-- GraphQL: `http://localhost:4000/graphql`
+The server runs on the port specified in the `.env` file (default is 5000 or 7000).
+- REST API: `http://localhost:<PORT>/api`
+- GraphQL: `http://localhost:<PORT>/graphql`
 
 ---
 
