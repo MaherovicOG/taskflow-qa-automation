@@ -1,0 +1,13 @@
+{
+  "name": "cypress-api-tests",
+  "version": "1.0.0",
+  "description": "Cypress tests for TaskFlow APIs",
+  "scripts": {
+    "test": "npx cypress run",
+    "open": "npx cypress open"
+  },
+  "devDependencies": {
+    "cypress": "^13.0.0",
+    "typescript": "^5.0.0"
+  }
+}
