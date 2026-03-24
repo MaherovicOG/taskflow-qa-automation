@@ -1,43 +1,110 @@
-import { Router } from "express";
-import { db } from "../utils/db";
-import { users } from "../models/schema";
-import { eq } from "drizzle-orm";
-import bcrypt from "bcryptjs";
-import { generateToken } from "../utils/auth";
+import { Router, Response } from "express";
+import { signupUser, loginUser, getMe } from "../services/userService";
+import { authMiddleware, AuthRequest } from "../middleware/authMiddleware";
 
 const router = Router();
 
-// Signup
+/**
+ * @swagger
+ * /auth/signup:
+ *   post:
+ *     summary: User Signup
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - fullName
+ *               - email
+ *               - password
+ *             properties:
+ *               fullName:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: User created successfully
+ *       400:
+ *         description: Bad Request
+ */
 router.post("/signup", async (req, res) => {
   const { fullName, email, password } = req.body;
   try {
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-    const result = await db.insert(users).values({ fullName, email, password: hashedPassword }).returning();
-    const newUser = result[0];
-    const token = generateToken(newUser.id);
-    res.json({ token, user: newUser });
+    const { token, user } = await signupUser(fullName, email, password);
+    res.json({ token, user });
   } catch (error: any) {
     res.status(400).json({ error: error.message });
   }
 });
 
-// Login
+/**
+ * @swagger
+ * /auth/login:
+ *   post:
+ *     summary: User Login
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *       401:
+ *         description: Invalid credentials
+ *       500:
+ *         description: Server error
+ */
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
   try {
-    const result = await db.select().from(users).where(eq(users.email, email));
-    const user = result[0];
-    if (!user) return res.status(404).json({ error: "User not found" });
-
-    const isValid = await bcrypt.compare(password, user.password || "");
-    if (!isValid) return res.status(401).json({ error: "Invalid password" });
-
-    const token = generateToken(user.id);
+    const { token, user } = await loginUser(email, password);
     res.json({ token, user });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
 });
 
+/**
+ * @swagger
+ * /auth/me:
+ *   get:
+ *     summary: Get current authenticated user
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Valid user found
+ *       401:
+ *         description: Unauthorized
+ */
+router.get("/me", authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    const user = await getMe(req.user!.userId);
+    res.json(user);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 export default router;
+
+
+
