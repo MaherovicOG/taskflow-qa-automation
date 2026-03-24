@@ -36,12 +36,21 @@ const router = Router();
 router.post("/signup", async (req, res) => {
   const { fullName, email, password } = req.body;
   try {
-    const { token, user } = await signupUser(fullName, email, password);
-    res.json({ token, user });
+    const user = await signupUser(fullName, email, password);
+    return res.status(201).json({
+      success: true,
+      user: {
+        id: user.id,
+        fullName: user.fullName,
+        email: user.email
+      }
+    });
   } catch (error: any) {
-    res.status(400).json({ error: error.message });
+    console.error("Signup Error:", error.message);
+    return res.status(400).json({ success: false, error: error.message });
   }
 });
+
 
 /**
  * @swagger
