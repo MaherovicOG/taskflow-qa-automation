@@ -1,7 +1,22 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('GraphQL API', () => {
-  test('Query getUsers - should fetch all users', async ({ request }) => {
+  test('Query getUsers - should fetch all users (Authorized)', async ({ request }) => {
+    // 1. Signup and Login
+    const userEmail = `list-gql-${Date.now()}@test.com`;
+    await request.post('/graphql', {
+      data: {
+        query: `mutation { signup(fullName: "List User", email: "${userEmail}", password: "password123") { id } }`
+      }
+    });
+    const loginRes = await request.post('/graphql', {
+      data: {
+        query: `mutation { login(email: "${userEmail}", password: "password123") { token } }`
+      }
+    });
+    const { data: loginData } = await loginRes.json();
+    const token = loginData.login.token;
+
     const query = {
       query: `
         query {
@@ -15,6 +30,9 @@ test.describe('GraphQL API', () => {
     };
 
     const response = await request.post('/graphql', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      },
       data: query,
     });
 
@@ -23,6 +41,7 @@ test.describe('GraphQL API', () => {
     expect(body.data).toHaveProperty('getUsers');
     expect(Array.isArray(body.data.getUsers)).toBe(true);
   });
+
 
   test('Mutation signup - should create a new user via GraphQL', async ({ request }) => {
     const signupEmail = `gql-signup-${Date.now()}@test.com`;

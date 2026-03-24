@@ -1,5 +1,6 @@
-import { Router } from "express";
+import { Router, Response } from "express";
 import { getAllUsers, getUserById } from "../services/userService";
+import { authMiddleware, AuthRequest } from "../middleware/authMiddleware";
 
 const router = Router();
 
@@ -9,6 +10,8 @@ const router = Router();
  *   get:
  *     summary: Get all users
  *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: List of all users
@@ -26,7 +29,7 @@ const router = Router();
  *                   email:
  *                     type: string
  */
-router.get("/", async (req, res) => {
+router.get("/", authMiddleware, async (req: AuthRequest, res: Response) => {
   const allUsers = await getAllUsers();
   res.json(allUsers);
 });
@@ -37,6 +40,8 @@ router.get("/", async (req, res) => {
  *   get:
  *     summary: Get user by ID
  *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -50,7 +55,7 @@ router.get("/", async (req, res) => {
  *       404:
  *         description: User not found
  */
-router.get("/:id", async (req, res) => {
+router.get("/:id", authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const user = await getUserById(parseInt(req.params.id));
     if (!user) return res.status(404).json({ error: "User not found" });
@@ -59,5 +64,6 @@ router.get("/:id", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
 
 export default router;

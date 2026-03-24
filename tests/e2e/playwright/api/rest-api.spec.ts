@@ -83,10 +83,25 @@ test.describe('REST API Authentication', () => {
 });
 
 test.describe('REST API Users', () => {
-  test('GET /api/users - should return a list of users', async ({ request }) => {
-    const response = await request.get('/api/users');
+  test('GET /api/users - should return a list of users (Authorized)', async ({ request }) => {
+    // 1. Signup and Login to get a token
+    const userEmail = `list-${Date.now()}@example.com`;
+    await request.post('/api/auth/signup', {
+      data: { fullName: 'List User', email: userEmail, password: 'password123' }
+    });
+    const loginRes = await request.post('/api/auth/login', {
+      data: { email: userEmail, password: 'password123' }
+    });
+    const { token } = await loginRes.json();
+
+    const response = await request.get('/api/users', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
     expect(response.ok()).toBeTruthy();
     const body = await response.json();
     expect(Array.isArray(body)).toBeTruthy();
   });
 });
+
