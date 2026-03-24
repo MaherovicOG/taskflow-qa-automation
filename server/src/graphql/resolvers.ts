@@ -21,8 +21,7 @@ export const resolvers = {
       return await loginUser(email, password);
     },
     createUser: async (_: any, { fullName, email, password }: { fullName: string; email: string; password?: string }) => {
-      const { user } = await signupUser(fullName, email, password);
-      return user;
+      return await signupUser(fullName, email, password);
     },
   },
 };
