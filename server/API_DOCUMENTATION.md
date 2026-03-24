@@ -36,11 +36,16 @@ The server runs on the port specified in the `.env` file (default is 7000).
 
 ## Users (REST)
 
-### Get All Users
+### Get All Users (REST)
 
 **Endpoint:** `GET /api/users`  
 **Requires Authentication:** No (can be added via middleware)  
 **Returns:** `[ { ... }, ... ]`
+
+### Get User By ID (REST)
+
+**Endpoint:** `GET /api/users/{id}`  
+**Returns:** `{ "id": number, "fullName": "string", "email": "string" }`
 
 ---
 
@@ -58,7 +63,8 @@ For protected queries/mutations, you must provide the JWT token in the **HTTP He
 
 ### Queries
 
-#### Get Current User (Me)
+#### Get Current User (Me - GQL)
+
 
 Requires header: `Authorization: Bearer <token>`
 
